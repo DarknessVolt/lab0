@@ -51,7 +51,7 @@ int main(int argc, char** argv)
     //loop read 8 bits
     while(readReturn)
     {
-        for(i = 0; i < 8; i++)
+        while(i < 8)
         {
             //save "bit" to string
             readReturn = (int)read(file, &curr, 1);
