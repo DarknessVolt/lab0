@@ -1,17 +1,39 @@
 #include <stdio.h>
 #include <math.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+char *fileName;
+
+//read input
+int readInput(char* in)
+{
+    int pos = 0;
+    char *buf = alloc
+    while(1)
+    {
+
+    }
+}
 
 int main(int argc, char** argv)
 {
+    char *fileName = malloc(10*sizeof(char));
     //check for command line arguments
-    if(argc == 1 || argv[1] == '-')
+    if(argc == 1 || argv[1] == "-")
     {
         //use stdin
+        readInput(fileName);
     }
     else
     {
-        //open thee file
+        fileName = argv[1];
     }
+
+    //open thee file
+
+
     int i;
     int j;
     int parity;
