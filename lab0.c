@@ -10,7 +10,7 @@ char *fileName;
 int readInput(char* in)
 {
     int pos = 0;
-    char *buf = alloc
+    
     while(1)
     {
 
@@ -32,20 +32,39 @@ int main(int argc, char** argv)
     }
 
     //open thee file
+    int file = open(fileName, O_RDONLY);
 
+    if(file == -1)
+    {
+        printf("ERROR: File Not Found");
+        exit(1);
+    }
 
     int i;
     int j;
     int parity;
     char curr;
     int dec;
+    int *stringOfBits = calloc(8, sizeof(char));
+
+    int readReturn = 1;
     //loop read 8 bits
-    while(/*end condition*/)
+    while(readReturn)
     {
         for(i = 0; i < 8; i++)
         {
             //save "bit" to string
-            
+            readReturn = (int)read(file, &curr, 1);
+            if(readReturn == 0)
+            {
+                for(i; i < 8; i++)
+                {
+                    printf("0");
+                }
+                break;
+            }
+            stringOfBits[i] = curr;
+
             //calculate the shtuffs
             if(curr == '1')
             {
@@ -53,11 +72,9 @@ int main(int argc, char** argv)
                 parity += 1;
             }
         }
-        //check if there are any more chars+
-        //read a char
-        //add char to string
-        //convert to int
         //print and formatting
+        printf("%s %8c %8d %8s", stringOfBits, (char)dec, dec, parity);
     }
     //
+    return 0;
 }
