@@ -16,6 +16,8 @@ typedef struct out
     char byte[8];
 }Out;
 
+char iascii[34][6] = {"NULL", "SOH", "STX", "ETX",  "EOT", "ENQ", "ACK", "BEL", "BS", "TAB", "LF", "VT", "FF", "CR", "SO", "SI", "DLE", "DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB", "CAN", "EM", "SUB", "ESC", "FS", "GS", "RS", "US", "Space", "DEL"};
+
 char readChar(int* offset, char* stringOfBits)
 {
     char c = stringOfBits[*offset];
@@ -83,29 +85,54 @@ Out readByte(int* offset, char* stringOfBits)
 
 int main(int argc, char** argv)
 {
-    char *fileName = malloc(100*sizeof(char));
+    char *input = malloc(100*sizeof(char));
+    int fileHandle;
     char stringOfBits[STR_LEN];
     int *offset;
+    char mode = '0';
+
     //check for command line arguments
-    if(argc == 1 || strcmp(argv[1], "-"))
+    /*if(argc <= 1)
     {
         //use stdin
-        
+        //printf("0: INPUT FILE NAME 1: ENTER INPUT MANUALLY");
+        printf("ERROR: Insufficient Arguments");
+        exit(0);
     }
     else
     {
-        strcpy(fileName, argv[1]);
-    }
+        if(strcmp(argv[1], "-"))
+        {
+            mode = 1;
+        }
+        strcpy(input, argv[1]);
+    }*/
 
     //open thee file
-    int file = open(fileName, O_RDONLY);
 
-    if(file == -1)
+    if(argc <= 1)
+    {
+        printf("ERROR: Insufficient Arguments");
+    }
+    else if(argv[1][0] == '-')
+    {
+
+    }
+    else if(argv[1][0] == '1' || argv[1][0] == '0')
+    {
+
+    }
+    else
+    {
+        fileHandle = open(argv[1], O_RDONLY);
+    }
+
+    if(fileHandle == -1)
     {
         printf("ERROR: File Not Found");
         exit(1);
     }
-    
+
     int i = 0;
     int j;
     Out out;
@@ -127,6 +154,7 @@ int main(int argc, char** argv)
         else
         {
             printf("%s %8c %8d ", out.byte, out.c, out.decimal);
+
             if(out.parity%2)
             {
                 printf("ODD\n");
