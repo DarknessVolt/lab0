@@ -110,7 +110,6 @@ int main(int argc, char** argv)
     char input[STR_LEN][8];
     int fileHandle;
     int *offset;
-    char mode = '0';
     char buffer;
     int size = 0;
 
@@ -177,7 +176,7 @@ int main(int argc, char** argv)
             {
                 break;
             }
-            else if(input[i] == " ")
+            else if(buffer == ' ')
             {
                 j++;
                 size++;
@@ -197,7 +196,6 @@ int main(int argc, char** argv)
     
 
     int i = 0;
-    int j;
     Out out;
 
     int loop = 1;
@@ -206,9 +204,9 @@ int main(int argc, char** argv)
     printf("Original ASCII    Decimal  Parity  \n");
     printf("-------- -------- -------- --------\n");
     //loop read 8 bits
-    while(loop)
+    for(i; i < size; i++)
     {
-        out = readByte(offset, input);
+        out = readByte(input[i]);
 
         if(out.decimal = -1)
         {
