@@ -34,6 +34,7 @@ int buffer(char** input, int size)
     }
 }
 
+/*
 char readChar(int* offset, char* stringOfBits)
 {
     char c = stringOfBits[*offset];
@@ -60,9 +61,14 @@ int readBit(int* offset, char* stringOfBits)
     }while(*offset < STR_LEN);
 
     return -1;
-}
+}*/
 
-Out readByte(int* offset, char* stringOfBits)
+int readBit(char* stringOfBits, int loc)
+{
+    return (int)(stringOfBits[loc] - '0');
+}   
+
+Out readByte(char* stringOfBits)
 {
     int i;
     int bit;
@@ -74,7 +80,7 @@ Out readByte(int* offset, char* stringOfBits)
     for(i = 7; i >= 0; i++)
     {
 
-        bit = readBit(offset, stringOfBits);
+        bit = readBit(stringOfBits, 7-i);
 
         if(bit == -1 && i == 7)
         {
