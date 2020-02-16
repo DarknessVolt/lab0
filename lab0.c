@@ -14,7 +14,7 @@ typedef struct out
     int decimal;
     char parity[5];
     char c[6];
-    char byte[8];
+    char byte[9];
 }Out;
 
 char iascii[34][6] = {"NULL", "SOH", "STX", "ETX",  "EOT", "ENQ", "ACK", "BEL", "BS", "TAB", "LF", "VT", "FF", "CR", "SO", "SI", "DLE", "DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB", "CAN", "EM", "SUB", "ESC", "FS", "GS", "RS", "US", "Space", "DEL"};
@@ -85,7 +85,8 @@ Out readByte(char* stringOfBits)
     
     bit = readBit(stringOfBits, 0);
 
-    out.byte[0] = bit + '0';
+    strcpy(out.byte, stringOfBits);
+    out.byte[8] ='\0'; 
     p += bit;
 
     for(i = 6; i >= 0; i--)
@@ -110,7 +111,7 @@ Out readByte(char* stringOfBits)
         {*/
         p += bit;
         out.decimal += bit * pow(2, i);
-        out.byte[7-i] = bit + '0';
+        //out.byte[7-i] = bit + '0';
     }
 
     if(p%2 == 0)
@@ -228,7 +229,7 @@ int main(int argc, char** argv)
             }
         }
     }
-    size++;
+    //size++;
 
     
 
@@ -240,9 +241,12 @@ int main(int argc, char** argv)
     //loop read 8 bits
     for(i = 0; i < size; i++)
     {
+        //printf("%d\n", i);
+        //printf("%s\n", input[i]);
         bufferByte(input[i]);
+        //printf("%s\n", input[i]);
         out= readByte(input[i]);
-        printf("%8s %8s %8d %s\n", out.byte, out.c, out.decimal, out.parity);
+        printf("%s %8s %8d %s\n", out.byte, out.c, out.decimal, out.parity);
         /*out = readByte(input[i]);
 
         if(out.decimal = -1)
