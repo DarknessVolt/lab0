@@ -18,6 +18,22 @@ typedef struct out
 
 char iascii[34][6] = {"NULL", "SOH", "STX", "ETX",  "EOT", "ENQ", "ACK", "BEL", "BS", "TAB", "LF", "VT", "FF", "CR", "SO", "SI", "DLE", "DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB", "CAN", "EM", "SUB", "ESC", "FS", "GS", "RS", "US", "Space", "DEL"};
 
+int buffer(char** input, int size)
+{
+    int i;
+    int j;
+    for(i=0; i < size; i++)
+    {
+        for(j = 0; j < 8; j++)
+        {
+            if(!(input[i][j] == '1' || input[i][j] == '0'))
+            {
+                input[i][j] = '0';
+            }
+        }
+    }
+}
+
 char readChar(int* offset, char* stringOfBits)
 {
     char c = stringOfBits[*offset];
@@ -85,11 +101,12 @@ Out readByte(int* offset, char* stringOfBits)
 
 int main(int argc, char** argv)
 {
-    char *input = malloc(100*sizeof(char));
+    char input[STR_LEN][8];
     int fileHandle;
-    char stringOfBits[STR_LEN];
     int *offset;
     char mode = '0';
+    char buffer;
+    int size = 0;
 
     //check for command line arguments
     /*if(argc <= 1)
@@ -113,25 +130,65 @@ int main(int argc, char** argv)
     if(argc <= 1)
     {
         printf("ERROR: Insufficient Arguments");
+        exit(1);
     }
     else if(argv[1][0] == '-')
     {
-
+        int i;
+        for(i = 2; i < argc; i++)
+        {
+            *input[i-2] = (char*)realloc(argv[i], sizeof(char)*8);
+        }
+        size = argc - 2;
     }
     else if(argv[1][0] == '1' || argv[1][0] == '0')
     {
-
+        int i;
+        for(i = 1; i < argc; i++)
+        {
+            *input[i-1] = (char*)realloc(argv[i], sizeof(char)*8);
+        }
+        size = argc - 1;
     }
     else
     {
         fileHandle = open(argv[1], O_RDONLY);
-    }
 
-    if(fileHandle == -1)
-    {
-        printf("ERROR: File Not Found");
-        exit(1);
+        if(fileHandle == -1)
+        {
+            printf("ERROR: File Not Found");
+            exit(1);
+        }
+
+        int loop = 1;
+        int j = 0;
+        int i = 0;
+        while(1)
+        {
+            int i;
+            loop = read(fileHandle, buffer, 1);
+            if(loop == 0)
+            {
+                break;
+            }
+            else if(input[i] == " ")
+            {
+                j++;
+                size++;
+            }
+            else
+            {
+                if(buffer == '1' || buffer == '0')
+                {
+                    input[j][i] = buffer;
+                    i++;
+                }
+            }
+        }
     }
+    size++;
+
+    
 
     int i = 0;
     int j;
@@ -145,7 +202,7 @@ int main(int argc, char** argv)
     //loop read 8 bits
     while(loop)
     {
-        out = readByte(offset, stringOfBits);
+        out = readByte(offset, input);
 
         if(out.decimal = -1)
         {
