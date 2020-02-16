@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <math.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -11,25 +12,29 @@
 typedef struct out
 {
     int decimal;
-    int parity;
-    char c;
+    char parity[5];
+    char c[6];
     char byte[8];
 }Out;
 
 char iascii[34][6] = {"NULL", "SOH", "STX", "ETX",  "EOT", "ENQ", "ACK", "BEL", "BS", "TAB", "LF", "VT", "FF", "CR", "SO", "SI", "DLE", "DC1", "DC2", "DC3", "DC4", "NAK", "SYN", "ETB", "CAN", "EM", "SUB", "ESC", "FS", "GS", "RS", "US", "Space", "DEL"};
 
-int buffer(char** input, int size)
+void bufferByte(char* input)
 {
     int i;
-    int j;
-    for(i=0; i < size; i++)
+    input[8] = '\0';
+    for(i=0; i < 8; i++)
     {
-        for(j = 0; j < 8; j++)
+        if(!(input[i] == '1' || input[i] == '0'))
         {
-            if(!(input[i][j] == '1' || input[i][j] == '0'))
+            while(i < 8)
             {
-                input[i][j] = '0';
+                input[i] = '0';
+                i++;
             }
+            //printf("%s\n", input);
+            break;
+            
         }
     }
 }
@@ -72,16 +77,23 @@ Out readByte(char* stringOfBits)
 {
     int i;
     int bit;
+    int p;
     Out out;
     
     out.decimal = 0;
-    out.parity = 0;
+    p = 0;
     
-    for(i = 7; i >= 0; i++)
+    bit = readBit(stringOfBits, 0);
+
+    out.byte[0] = bit + '0';
+    p += bit;
+
+    for(i = 6; i >= 0; i--)
     {
 
         bit = readBit(stringOfBits, 7-i);
-
+        //printf("%d\n", bit);
+/*
         if(bit == -1 && i == 7)
         {
             out.decimal = -1;
@@ -95,22 +107,45 @@ Out readByte(char* stringOfBits)
             }
         }
         else
-        {
-            out.parity += bit;
-            out.decimal += bit * pow(2, i);
-            out.byte[7-i] = bit + '0';
-        }
+        {*/
+        p += bit;
+        out.decimal += bit * pow(2, i);
+        out.byte[7-i] = bit + '0';
     }
-    out.c = (char)out.decimal;
+
+    if(p%2 == 0)
+    {
+        strcpy(out.parity, "EVEN");
+    }
+    else
+    {
+        strcpy(out.parity, "ODD");
+    }
+    
+    if(out.decimal <= 32)
+    {
+        strcpy(out.c, iascii[out.decimal]);
+    }
+    else if(out.decimal == 127)
+    {
+        strcpy(out.c, iascii[33]);
+    }
+    else
+    {
+        out.c[0] = (char)out.decimal;
+        out.c[1] = '\0';
+    }
+    
     return out;
 }
 
+
+
 int main(int argc, char** argv)
 {
-    char input[STR_LEN][8];
+    char input[STR_LEN][9];
     int fileHandle;
-    int *offset;
-    char buffer;
+    char buffer = '0';
     int size = 0;
 
     //check for command line arguments
@@ -142,8 +177,10 @@ int main(int argc, char** argv)
         int i;
         for(i = 2; i < argc; i++)
         {
-            *input[i-2] = (char*)realloc(argv[i], sizeof(char)*8);
+            //*input[i-2] = (char*)realloc(argv[i], sizeof(char)*8);
+            strcpy(input[i-2], argv[i]);
         }
+
         size = argc - 2;
     }
     else if(argv[1][0] == '1' || argv[1][0] == '0')
@@ -151,7 +188,8 @@ int main(int argc, char** argv)
         int i;
         for(i = 1; i < argc; i++)
         {
-            *input[i-1] = (char*)realloc(argv[i], sizeof(char)*8);
+            //*input[i-1] = (char*)realloc(argv[i], sizeof(char)*8);
+            strcpy(input[i-1], argv[i]);
         }
         size = argc - 1;
     }
@@ -167,11 +205,10 @@ int main(int argc, char** argv)
 
         int loop = 1;
         int j = 0;
-        int i = 0;
         while(1)
         {
             int i;
-            loop = read(fileHandle, buffer, 1);
+            loop = read(fileHandle, &buffer, 1);
             if(loop == 0)
             {
                 break;
@@ -195,18 +232,18 @@ int main(int argc, char** argv)
 
     
 
-    int i = 0;
+    int i;
     Out out;
-
-    int loop = 1;
-    *offset = 0;
 
     printf("Original ASCII    Decimal  Parity  \n");
     printf("-------- -------- -------- --------\n");
     //loop read 8 bits
-    for(i; i < size; i++)
+    for(i = 0; i < size; i++)
     {
-        out = readByte(input[i]);
+        bufferByte(input[i]);
+        out= readByte(input[i]);
+        printf("%8s %8s %8d %s\n", out.byte, out.c, out.decimal, out.parity);
+        /*out = readByte(input[i]);
 
         if(out.decimal = -1)
         {
@@ -225,7 +262,7 @@ int main(int argc, char** argv)
                 printf("EVEN\n");
             }
             
-        }
+        }*/
     }
     /*
     while(readReturn)
