@@ -26,12 +26,12 @@ int forkAndLaunch(int argc, char** argv, pid_t pid)
         
         execve(argv[1], prepArgv(argc, argv), NULL);
 
-        printf("EXEC ERROR");
+        printf("EXEC ERROR\n");
     }
     else if(pid < 0)
     {
         //error
-        printf("FORKING ERROR")
+        printf("FORKING ERROR\n");
     }
     else
     {
@@ -50,7 +50,14 @@ int forkAndLaunch(int argc, char** argv, pid_t pid)
 
 int main(int argc, char** argv)
 {
+    if(argc <= 2)
+    {
+        printf("INSUFFICIENT ARGUMENTS\n");
+        return 1;
+    }
     pid_t pid = fork();
-    
+
     forkAndLaunch(argc, argv, pid);
+    
+    return 0;
 }
