@@ -50,6 +50,7 @@ int forkAndLaunch(int argc, char** argv, pid_t pid)
 
 int main(int argc, char** argv)
 {
-    pid_t pid;
+    pid_t pid = fork();
+    
     forkAndLaunch(argc, argv, pid);
 }
