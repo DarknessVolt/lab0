@@ -51,7 +51,7 @@ int forkAndLaunch(int argc, char** argv, pid_t pid)
 
 int main(int argc, char** argv)
 {
-    if(argc <= 2)
+    if(argc < 2)
     {
         printf("INSUFFICIENT ARGUMENTS\n");
         return 1;
