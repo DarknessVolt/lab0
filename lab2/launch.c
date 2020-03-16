@@ -11,8 +11,10 @@ char** prepArgv(int argc, char** argv, char** argv2)
 
     for(i = 1; i < argc; i++)
     {
-        strcpy(argv2[i-1], argv[i]);
+        //printf("%s\n", argv[i]);
+        argv2[i-1] = argv[i];
     }
+    printf("%s\n", argv2[0]);
     argv2[argc-1] = (char*)0;
 
 }
@@ -22,6 +24,7 @@ int forkAndLaunch(int argc, char** argv, pid_t pid)
     if(pid == 0)
     {
         //child process
+
         char* argv2[argc];
         
         prepArgv(argc, argv, argv2);
