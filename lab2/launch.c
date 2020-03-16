@@ -4,9 +4,9 @@
 #include <unistd.h>
 #include <string.h>
 
-char** prepArgv(int argc, char** argv)
+char** prepArgv(int argc, char** argv, char** argv2)
 {
-    char* argv2[argc];
+    
     int i;
 
     for(i = 1; i < argc; i++)
@@ -14,8 +14,7 @@ char** prepArgv(int argc, char** argv)
         strcpy(argv2[i-1], argv[i]);
     }
     argv2[argc-1] = (char*)0;
-    
-    return argv2;
+
 }
 
 int forkAndLaunch(int argc, char** argv, pid_t pid)
@@ -23,8 +22,10 @@ int forkAndLaunch(int argc, char** argv, pid_t pid)
     if(pid == 0)
     {
         //child process
+        char* argv2[argc];
         
-        execve(argv[1], prepArgv(argc, argv), NULL);
+        prepargv(argc, argv, argv2);
+        execve(argv[1], argv2, NULL);
 
         printf("EXEC ERROR\n");
     }
