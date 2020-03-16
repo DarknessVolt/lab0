@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <string.h>
+#include <fcntl.h>
 
 int commaPos(int argc, char** argv)
 {
@@ -35,10 +36,21 @@ char** prepArgv(int start, int argc, char** argv)
 
 int forkAndLaunch(int argc, char** argv, pid_t pid)
 {
+    int fd1[2];
+    //int fd2[2];
+
+    if(pipe(fd1) == -1)
+    {
+        fprintf(stderr, "PIPE ERROR\n")
+        return 1;
+    }
+    
+
     int secondArgPos = commaPos(argc, argv);
     if(secondArgPos == -1)
     {
-        printf("ARGUMENTS REJECTED\n");
+        fprintf(stderr, "ARGUMENTS REJECTED\n");
+        return 1;
     }
 
     pid_t pid[2];
@@ -58,22 +70,43 @@ int forkAndLaunch(int argc, char** argv, pid_t pid)
     {
         //child process
 
-
         if(childNum == 0)
         {
+            close(fd1[0]);
+            
+            if(dup2(fd1[1], stdout) == -1)
+            {
+                fprintf(stderr, "DUP FAILURE");
+                return 1;
+            }
+
+            close(fd1[1]);
+
             execve(argv[1], prepArgv(1, argc, argv), NULL);
         }
         else
         {
+            close(fd1[1]);
+
+            if(dup2(fd1[0], stdin) == -1)
+            {
+                fprintf(stderr, "DUP FAILURE");
+                return 1;
+            }
+
+            close (fd1[0]);
+
             execve(argv[secondArgPos + 1], prepArgv(secondArgPos + 1, argc, argv), NULL);
         }
 
-        printf("EXEC ERROR");
+        fprintf(stderr, "EXEC ERROR");
+        return 1;
     }
     else if(pid < 0)
     {
         //error
-        printf("FORKING ERROR")
+        fprintf(stderr, "FORKING ERROR")
+        return 1;
     }
     else
     {
@@ -82,25 +115,30 @@ int forkAndLaunch(int argc, char** argv, pid_t pid)
         int status1;
         int status2;
 
-        printf("%s: $$ = %d\n", argv[1], pid[0]);
-        printf("%s: $$ = %d\n", argv[1], pid[1]);
+        fprintf(stderr, "%s: $$ = %d\n", argv[1], pid[0]);
+        fprintf(stderr, "%s: $$ = %d\n", argv[secondArgPos + 1], pid[1]);
+
+        close(fd1[0]);
+        close(fd1[1]);
 
         waitpid(pid[0], &status1, 0);
         waitpid(pid[1], &status2, 0);
 
-        printf("%s: $? = %d\n", argv[1], status1);
-        printf("%s: $? = %d\n", argv[2], status2);
+        fprintf(stderr, "%s: $? = %d\n", argv[1], status1);
+        fprintf(stderr, "%s: $? = %d\n", argv[secondArgPos + 1], status2);
     }
+
+    return 0;
 }
 
 int main(int argc, char** argv)
 {
     if(argc <=2)
     {
-        printf("INSUFFICIENT ARGUMENTS\n");
+        fprintf(stderr, "INSUFFICIENT ARGUMENTS\n");
+        return 1;
     }
-    
-    forkAndLaunch(argc, argv);
 
-    return 0;
+    return forkAndLaunch(argc, argv);
+
 }
