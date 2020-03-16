@@ -116,7 +116,7 @@ int forkAndLaunch(int argc, char** argv)
     else if(pid < 0)
     {
         //error
-        fprintf(stderr, "FORKING ERROR\n")
+        fprintf(stderr, "FORKING ERROR\n");
         return 1;
     }
     else
