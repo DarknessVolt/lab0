@@ -41,7 +41,7 @@ int forkAndLaunch(int argc, char** argv, pid_t pid)
 
     if(pipe(fd1) == -1)
     {
-        fprintf(stderr, "PIPE ERROR\n")
+        fprintf(stderr, "PIPE ERROR\n");
         return 1;
     }
     
@@ -76,7 +76,7 @@ int forkAndLaunch(int argc, char** argv, pid_t pid)
             
             if(dup2(fd1[1], stdout) == -1)
             {
-                fprintf(stderr, "DUP FAILURE");
+                fprintf(stderr, "DUP FAILURE\n");
                 return 1;
             }
 
@@ -90,7 +90,7 @@ int forkAndLaunch(int argc, char** argv, pid_t pid)
 
             if(dup2(fd1[0], stdin) == -1)
             {
-                fprintf(stderr, "DUP FAILURE");
+                fprintf(stderr, "DUP FAILURE\n");
                 return 1;
             }
 
@@ -99,13 +99,13 @@ int forkAndLaunch(int argc, char** argv, pid_t pid)
             execve(argv[secondArgPos + 1], prepArgv(secondArgPos + 1, argc, argv), NULL);
         }
 
-        fprintf(stderr, "EXEC ERROR");
+        fprintf(stderr, "EXEC ERROR\n");
         return 1;
     }
     else if(pid < 0)
     {
         //error
-        fprintf(stderr, "FORKING ERROR")
+        fprintf(stderr, "FORKING ERROR\n")
         return 1;
     }
     else
