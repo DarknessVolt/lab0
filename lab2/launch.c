@@ -39,11 +39,11 @@ int forkAndLaunch(int argc, char** argv, pid_t pid)
 
         int status;
 
-        printf("%s: $$ = %d", argv[1], pid);
+        printf("%s: $$ = %d\n", argv[1], pid);
 
         waitpid(pid, &status, 0);
 
-        printf("%s: $? = %d", argv[1], status);
+        printf("%s: $? = %d\n", argv[1], status);
         
     }
 }

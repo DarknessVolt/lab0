@@ -4,14 +4,29 @@
 #include <unistd.h>
 #include <string.h>
 
-char** prepArgv(int argc, char** argv)
+int commaPos(int argc, char** argv)
 {
-    char* argv2[argc];
     int i;
 
     for(i = 1; i < argc; i++)
     {
-        strcpy(argv2[i-1], argv[i]);
+        if(strcmp(",", argv[i]) == 0)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+char** prepArgv(int start, int argc, char** argv)
+{
+    int size = argc - start + 1;
+    char* argv2[size];
+    int i;
+
+    for(i = 0; i < size; i++)
+    {
+        strcpy(argv2[i], argv[i + start]);
     }
     argv2[argc-1] = (char*)0;
     
@@ -20,11 +35,38 @@ char** prepArgv(int argc, char** argv)
 
 int forkAndLaunch(int argc, char** argv, pid_t pid)
 {
+    int secondArgPos = commaPos(argc, argv);
+    if(secondArgPos == -1)
+    {
+        printf("ARGUMENTS REJECTED\n");
+    }
+
+    pid_t pid[2];
+    int i;
+
+    for(i = 0; i < 2; i++)
+    {
+        pid[i] = fork();
+        if(pid[i] <= 0)
+        {
+            break;
+        }
+    }
+    int childNum = i;
+
     if(pid == 0)
     {
         //child process
-        
-        execve(argv[1], prepArgv(argc, argv), NULL);
+
+
+        if(childNum == 0)
+        {
+            execve(argv[1], prepArgv(1, argc, argv), NULL);
+        }
+        else
+        {
+            execve(argv[secondArgPos + 1], prepArgv(secondArgPos + 1, argc, argv), NULL);
+        }
 
         printf("EXEC ERROR");
     }
@@ -37,20 +79,28 @@ int forkAndLaunch(int argc, char** argv, pid_t pid)
     {
         //parent process
 
-        int status;
+        int status1;
+        int status2;
 
-        printf("%s: $$ = %d", argv[1], pid);
+        printf("%s: $$ = %d\n", argv[1], pid[0]);
+        printf("%s: $$ = %d\n", argv[1], pid[1]);
 
-        waitpid(pid, &status, 0);
+        waitpid(pid[0], &status1, 0);
+        waitpid(pid[1], &status2, 0);
 
-        printf("%s: $? = %d", argv[1], status);
-        
+        printf("%s: $? = %d\n", argv[1], status1);
+        printf("%s: $? = %d\n", argv[2], status2);
     }
 }
 
 int main(int argc, char** argv)
 {
-    pid_t pid1;
-    pid_t pid2;
-    forkAndLaunch(argc, argv, pid);
+    if(argc <=2)
+    {
+        printf("INSUFFICIENT ARGUMENTS\n");
+    }
+    
+    forkAndLaunch(argc, argv);
+
+    return 0;
 }
