@@ -19,10 +19,9 @@ int commaPos(int argc, char** argv)
     return -1;
 }
 
-char** prepArgv(int start, int argc, char** argv)
+char** prepArgv(int start, int argc, char** argv, char** argv2, int size)
 {
-    int size = argc - start + 1;
-    char* argv2[size];
+    
     int i;
 
     for(i = 0; i < size; i++)
@@ -30,11 +29,10 @@ char** prepArgv(int start, int argc, char** argv)
         strcpy(argv2[i], argv[i + start]);
     }
     argv2[argc-1] = (char*)0;
-    
-    return argv2;
+
 }
 
-int forkAndLaunch(int argc, char** argv, pid_t pid)
+int forkAndLaunch(int argc, char** argv)
 {
     int fd1[2];
     //int fd2[2];
@@ -81,8 +79,15 @@ int forkAndLaunch(int argc, char** argv, pid_t pid)
             }
 
             close(fd1[1]);
+            
+            int start = 1;
 
-            execve(argv[1], prepArgv(1, argc, argv), NULL);
+            int size = argc - start + 1;
+            char* argv2[size];
+
+            prepArgv(start, argc, argv, argv2, size);
+
+            execve(argv[start], argv2, NULL);
         }
         else
         {
@@ -95,8 +100,14 @@ int forkAndLaunch(int argc, char** argv, pid_t pid)
             }
 
             close (fd1[0]);
+            
+            int start = secondArgPos + 1;
+            int size = argc - start + 1;
+            char* argv2[size];
 
-            execve(argv[secondArgPos + 1], prepArgv(secondArgPos + 1, argc, argv), NULL);
+            prepArgv(start, argc, argv, argv2, size);
+
+            execve(argv[start], argv2, NULL);
         }
 
         fprintf(stderr, "EXEC ERROR\n");

@@ -24,7 +24,7 @@ int forkAndLaunch(int argc, char** argv, pid_t pid)
         //child process
         char* argv2[argc];
         
-        prepargv(argc, argv, argv2);
+        prepArgv(argc, argv, argv2);
         execve(argv[1], argv2, NULL);
 
         printf("EXEC ERROR\n");
