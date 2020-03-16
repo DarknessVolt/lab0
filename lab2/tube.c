@@ -72,7 +72,7 @@ int forkAndLaunch(int argc, char** argv)
         {
             close(fd1[0]);
             
-            if(dup2(fd1[1], stdout) == -1)
+            if(dup2(fd1[1], 1) == -1)
             {
                 fprintf(stderr, "DUP FAILURE\n");
                 return 1;
@@ -93,7 +93,7 @@ int forkAndLaunch(int argc, char** argv)
         {
             close(fd1[1]);
 
-            if(dup2(fd1[0], stdin) == -1)
+            if(dup2(fd1[0], 0) == -1)
             {
                 fprintf(stderr, "DUP FAILURE\n");
                 return 1;
