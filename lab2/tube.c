@@ -29,7 +29,7 @@ char** prepArgv(int start, int argc, char** argv, char** argv2, int size)
         argv2[i] = argv[i + start];
         //printf("%s\n", argv2[i]);
     }
-    argv2[argc-1] = (char*)0;
+    argv2[size-1] = (char*)0;
 
 }
 
@@ -62,7 +62,7 @@ int forkAndLaunch(int argc, char** argv)
     char* argv2[size1];
     char* argv3[size2];
 
-    printf("%d: %d: %d\n", size1, size2, argc);
+    //printf("%d: %d: %d\n", size1, size2, argc);
     pid_t pidt[2];
     int i;
 
@@ -95,40 +95,55 @@ int forkAndLaunch(int argc, char** argv)
         if(childNum == 0)
         {
             prepArgv(start1, argc, argv, argv2, size1);
-            printf("%s\n", argv2[0]);
+            //printf("%s\n", argv2[0]);
 
-            close(fd1[0]);
+            if(close(fd1[0]) == -1)
+            {
+                fprintf(stderr, "%s: CLOSE FAILURE\n", argv2[0]);
+                return 1;
+            }
             
             if(dup2(fd1[1], 1) == -1)
             {
-                fprintf(stderr, "DUP FAILURE\n");
+                fprintf(stderr, "%s: DUP FAILURE\n", argv2[0]);
                 return 1;
             }
 
-            close(fd1[1]);
-        
+            if(close(fd1[1]) == -1)
+            {
+                fprintf(stderr, "%s: CLOSE FAILURE\n", argv2[0]);
+                return 1;
+            }
 
             execve(argv2[0], argv2, NULL);
+            fprintf(stderr, "%s: EXEC ERROR\n", argv2[0]);
         }
         else
         {
             prepArgv(start2, argc, argv, argv3, size2);
-            printf("%s\n", argv3[0]);
-            close(fd1[1]);
-
-            if(dup2(fd1[0], 0) == -1)
+            //printf("%s\n", argv3[0]);
+            if(close(fd1[1]) == -1)
             {
-                fprintf(stderr, "DUP FAILURE\n");
+                fprintf(stderr, "%s: CLOSE FAILURE\n", argv3[0]);
                 return 1;
             }
 
-            close (fd1[0]);
+            if(dup2(fd1[0], 0) == -1)
+            {
+                fprintf(stderr, "%s: DUP FAILURE\n", argv3[0]);
+                return 1;
+            }
 
+            if(close(fd1[0]) == -1)
+            {
+                fprintf(stderr, "%s: CLOSE FAILURE\n", argv3[0]);
+                return 1;
+            }
 
             execve(argv3[0], argv3, NULL);
+            fprintf(stderr, "%s: EXEC ERROR\n", argv3[0]);
         }
 
-        fprintf(stderr, "EXEC ERROR\n");
         return 1;
     }
     else if(pid < 0)
