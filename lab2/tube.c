@@ -26,7 +26,8 @@ char** prepArgv(int start, int argc, char** argv, char** argv2, int size)
 
     for(i = 0; i < size; i++)
     {
-        strcpy(argv2[i], argv[i + start]);
+        argv2[i] = argv[i + start];
+        //printf("%s\n", argv2[i]);
     }
     argv2[argc-1] = (char*)0;
 
@@ -51,25 +52,51 @@ int forkAndLaunch(int argc, char** argv)
         return 1;
     }
 
-    pid_t pid[2];
+
+    int start1 = 1;
+    int start2 = secondArgPos + 1;
+
+    int size2 = argc - start2 + 1;
+    int size1 = argc - size2;
+
+    char* argv2[size1];
+    char* argv3[size2];
+
+    printf("%d: %d: %d\n", size1, size2, argc);
+    pid_t pidt[2];
     int i;
 
     for(i = 0; i < 2; i++)
     {
-        pid[i] = fork();
-        if(pid[i] <= 0)
+        pidt[i] = fork();
+        if(pidt[i] <= 0)
         {
             break;
         }
     }
+    
+    int pid;
     int childNum = i;
+    if(childNum == 0 || childNum == 1)
+    {
+        pid = pidt[childNum];
+    }
+    else
+    {
+        pid = pidt[0];
+    }
+    
 
+    //printf("%d\n", childNum);
     if(pid == 0)
     {
         //child process
 
         if(childNum == 0)
         {
+            prepArgv(start1, argc, argv, argv2, size1);
+            printf("%s\n", argv2[0]);
+
             close(fd1[0]);
             
             if(dup2(fd1[1], 1) == -1)
@@ -79,18 +106,14 @@ int forkAndLaunch(int argc, char** argv)
             }
 
             close(fd1[1]);
-            
-            int start = 1;
+        
 
-            int size = argc - start + 1;
-            char* argv2[size];
-
-            prepArgv(start, argc, argv, argv2, size);
-
-            execve(argv[start], argv2, NULL);
+            execve(argv2[0], argv2, NULL);
         }
         else
         {
+            prepArgv(start2, argc, argv, argv3, size2);
+            printf("%s\n", argv3[0]);
             close(fd1[1]);
 
             if(dup2(fd1[0], 0) == -1)
@@ -100,14 +123,9 @@ int forkAndLaunch(int argc, char** argv)
             }
 
             close (fd1[0]);
-            
-            int start = secondArgPos + 1;
-            int size = argc - start + 1;
-            char* argv2[size];
 
-            prepArgv(start, argc, argv, argv2, size);
 
-            execve(argv[start], argv2, NULL);
+            execve(argv3[0], argv3, NULL);
         }
 
         fprintf(stderr, "EXEC ERROR\n");
@@ -126,14 +144,14 @@ int forkAndLaunch(int argc, char** argv)
         int status1;
         int status2;
 
-        fprintf(stderr, "%s: $$ = %d\n", argv[1], pid[0]);
-        fprintf(stderr, "%s: $$ = %d\n", argv[secondArgPos + 1], pid[1]);
+        fprintf(stderr, "%s: $$ = %d\n", argv[1], pidt[0]);
+        fprintf(stderr, "%s: $$ = %d\n", argv[secondArgPos + 1], pidt[1]);
 
         close(fd1[0]);
         close(fd1[1]);
 
-        waitpid(pid[0], &status1, 0);
-        waitpid(pid[1], &status2, 0);
+        waitpid(pidt[0], &status1, 0);
+        waitpid(pidt[1], &status2, 0);
 
         fprintf(stderr, "%s: $? = %d\n", argv[1], status1);
         fprintf(stderr, "%s: $? = %d\n", argv[secondArgPos + 1], status2);
