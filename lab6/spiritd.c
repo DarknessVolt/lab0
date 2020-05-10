@@ -3,12 +3,13 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <string.h>
 #include <sys/resource.h>
 #include <unistd.h>
 
 pid_t child1 = 0;
 pid_t child2 = 0;
-char* cwd;
+char* pathToMole;
 
 void createChild();
 
@@ -22,8 +23,12 @@ void sigHandler(int sig)
     {
         
         //kill process #
-        if(child1 != 0)
+        if(child1 != 0)\
+        {
             kill(child1, SIGTERM);
+            child1 = 0;
+        }
+        
         //randomly create mole1 or mole 2
         createChild();
 
@@ -32,7 +37,10 @@ void sigHandler(int sig)
     {
         //kill process #2
         if(child2 != 0)
+        {
             kill(child2, SIGTERM);
+            child2 = 0;
+        }
         //randomly create mole1 or mole 2
         createChild();
     }
@@ -43,6 +51,8 @@ void sigHandler(int sig)
 
 int childrng(int* childnum)
 {
+    //randomly determine the child process number
+
     if(child1 == 0 && child2 == 0)
     {
         srand(time(NULL));
@@ -58,29 +68,28 @@ int childrng(int* childnum)
     }
 }
 
-int createChild()
+int moleForkandExec(int childnum, pid_t* pid)
 {
-    
     //fork a new process
+
     *pid = fork();
+
     if(pid == 0)
     {
+        char** argv;
         //child process
-        //randomly determine the child process number
-        int childnum;
-        childrng(*childnum);
-
         if(childnum == 1)
         {
-
+            argv = {"mole1"};
         }
         else
         {
-        
+            argv = {"mole2"};
         }
+        
 
-        //exec the program mole, arg[0] == to mole1 or mole2
-        execve()
+        //exec the program mole, argv[0] == to mole1 or mole2
+        execve(pathToMole, argv, environ);
     }
     else if(pid < 0)
     {
@@ -90,23 +99,46 @@ int createChild()
     else
     {
         //parent process
-        return pid;
+        return 0;
+    }
+    //exec failed
+    return -2;
+}
+
+int createChild()
+{
+    //randomly determine the child process number
+    int childnum;
+    childrng(*childnum);
+
+    
+    //fork a new process
+    if(childnum == 1)
+    {
+        moleForkandExec(childnum, child1)
+    }
+    else
+    {
+        moleForkandExec(childnum, child2);
     }
     
 }
 
 void daemon()
 {
+    //RELEASE THE D(A)EMON
     while(1)
     {
         pause();
     }
 }
 
+
 int main(int argc, char** argv)
 {
-    //get current working directory
+    //get current working directory and path to moles
     getcwd(cwd, 500);
+    strcat(pathToMole, "/moles");
 
     //set creation mask to 0
     umask(0);
@@ -147,6 +179,7 @@ int main(int argc, char** argv)
         signal(10, sigHandler);
         signal(12, sigHandler);
         
+        //RELEASE THE D(A)EMON
         daemon();
 
     }
