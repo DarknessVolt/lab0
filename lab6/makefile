@@ -29,9 +29,9 @@ spiritd:
 
 moles: 
 	$(CC) $(CFLAGS) -c moles.c
-	$(CC) $(CFLAGS) - o $@ moles.o
+	$(CC) $(CFLAGS) -o $@ moles.o
 # By convention, I always have a target called
 # "clean" that I used to define all temporary
 # or intermediates.
 clean:
-	rm -f $(EXECUTABLES) catcher.o
+	rm -f $(EXECUTABLES) moles.o spiritd.o

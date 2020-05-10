@@ -138,9 +138,10 @@ void daemonFun()
 int main(int argc, char** argv)
 {
     //get current working directory and path to moles
+    pathToMole = malloc(500*sizeof(char));
     getcwd(pathToMole, 500);
     strcat(pathToMole, "/moles");
-
+    //printf("yeet\n");
     //set creation mask to 0
     umask(0);
 
@@ -148,6 +149,8 @@ int main(int argc, char** argv)
     pid_t pid = fork();
     struct rlimit rl;
 
+    //printf("yeet\n");
+    
     if(pid == 0)
     {
         //child process aka daemon
@@ -192,7 +195,7 @@ int main(int argc, char** argv)
     else
     {
         //parent process // parent exits // child orphaned
-        printf("Daemon PID: %d", pid);
+        printf("Daemon PID: %d\n", pid);
     }
      
     return 0;

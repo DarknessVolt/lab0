@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 
     fprintf(logfile, "Pop %s\n", argv[0]);
 
-    flcose(logfile);
+    fclose(logfile);
     
     pause();
 
