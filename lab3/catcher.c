@@ -110,4 +110,6 @@ int main(int argc, char** argv)
     }
     //final status report
     fprintf(stderr, "catcher: Total signals count = %d\n", sigCount);
+
+    return 0;
 }
