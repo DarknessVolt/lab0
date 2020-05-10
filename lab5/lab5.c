@@ -34,7 +34,7 @@ int main(int argc, char** argv)
     findPage(addressIn, &page);
     findOffset(addressIn, &offset);
 
-    printf("The address %s constains:\n", argv[1]);
+    printf("The address %s contains:\n", argv[1]);
 	printf("Page number = %lu\n", page);
 	printf("Offset = %lu\n", offset);
 
