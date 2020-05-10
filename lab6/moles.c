@@ -4,12 +4,18 @@
 
 int main(int argc, char** argv)
 {
-    char* logfile;
+    FILE* logfile;
     char* home = getenv("HOME");
+
+    chdir(home);
+    
+    logfile = fopen("lab6.log", "a");
 
     fprintf(logfile, "Pop %s\n", argv[0]);
 
-    pause();
+    flcose(logfile);
     
+    pause();
+
     return 0;
 }
