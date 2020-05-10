@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <fcntl.h>
 #include <sys/resource.h>
 #include <unistd.h>
 
@@ -56,15 +57,15 @@ int childrng(int* childnum)
     if(child1 == 0 && child2 == 0)
     {
         srand(time(NULL));
-        childNum = rand() % 2 + 1;
+        *childnum = rand() % 2 + 1;
     }
     else if(child1 == 0)
     {
-        childnum = 1;
+        *childnum = 1;
     }
     else
     {
-        childnum = 2;
+        *childnum = 2;
     }
 }
 
@@ -80,16 +81,16 @@ int moleForkandExec(int childnum, pid_t* pid)
         //child process
         if(childnum == 1)
         {
-            argv = {"mole1"};
+            char* argv = {"mole1"};
         }
         else
         {
-            argv = {"mole2"};
+            char* argv = {"mole2"};
         }
         
 
         //exec the program mole, argv[0] == to mole1 or mole2
-        execve(pathToMole, argv, environ);
+        execve(pathToMole, argv, NULL);
     }
     else if(pid < 0)
     {
@@ -105,26 +106,26 @@ int moleForkandExec(int childnum, pid_t* pid)
     return -2;
 }
 
-int createChild()
+void createChild()
 {
     //randomly determine the child process number
     int childnum;
-    childrng(*childnum);
+    childrng(&childnum);
 
     
     //fork a new process
     if(childnum == 1)
     {
-        moleForkandExec(childnum, child1)
+        moleForkandExec(childnum, &child1);
     }
     else
     {
-        moleForkandExec(childnum, child2);
+        moleForkandExec(childnum, &child2);
     }
     
 }
 
-void daemon()
+void daemonFun()
 {
     //RELEASE THE D(A)EMON
     while(1)
@@ -137,7 +138,7 @@ void daemon()
 int main(int argc, char** argv)
 {
     //get current working directory and path to moles
-    getcwd(cwd, 500);
+    getcwd(pathToMole, 500);
     strcat(pathToMole, "/moles");
 
     //set creation mask to 0
@@ -165,7 +166,7 @@ int main(int argc, char** argv)
         //close all unneeded file descriptors
         getrlimit(RLIMIT_NOFILE, &rl);
 
-        for(i = 0; i < rl.rlim_max)
+        for(i = 0; i < rl.rlim_max; i++)
         {
             close(i);
         }
@@ -180,7 +181,7 @@ int main(int argc, char** argv)
         signal(12, sigHandler);
         
         //RELEASE THE D(A)EMON
-        daemon();
+        daemonFun();
 
     }
     else if(pid == 0)
