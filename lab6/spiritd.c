@@ -171,7 +171,7 @@ int main(int argc, char** argv)
             close(i);
         }
         //reopen the standard file descriptors to map to /dev/null
-        fd0 = open("/dev/null", O_RDRW);
+        fd0 = open("/dev/null", O_RDWR);
         fd1 = dup(0);
         fd2 = dup(0);
         
