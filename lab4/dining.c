@@ -6,24 +6,28 @@
 #include <errno.h>
 #include <time.h>
 #include <signal.h>
+#include <sys/mman.h>
 
 
-#define SEM_CHOPSTICK1 "/chopstick"
+#define SEM_CHOPSTICKS "/actuallyFork"
 
 int RAND_UPPER = 1000000;
 
 int cycles = 0;
+int loop = 1;
 
+int seats;
+int philNum;
 
 void sighandler(int sig)
 {
+    loop = 0;
 
-
-    
+    fprintf(stderr, "Philosopher %d completed %d cycles.", chopstick[i], cycles);
 }
 
 
-int rand_time(int phil_num)
+int rand_time()
 {
     srand(time(NULL));
     int rand_val = rand() % RAND_UPPER + 1;
@@ -33,47 +37,78 @@ int rand_time(int phil_num)
 int eat(phil_num)
 {
     printf("Philosopher %d is eating.", phil_num);
+
+    //consume random amount of time
     usleep(rand_time(phil_num));
 }
 
 int think(int phil_num)
 {
     printf("Philosopher %d is thinking.", phil_num);
+    
+    //consume random amount of time
     usleep(rand_time(phil_num));
 }
 
 int main(int argc, char** argv)
 {
+    //initialize shared memory
+    int fd = shm_open(SEM_CHOPSTICKS, O_RDWR | O_CREAT | O_EXCL, 0666);
+    if(fd == EEXIST)
+    {
+        PERROR(NULL);
+        fd = shm_open(SEM_CHOPSTICKS);
+    }
 
-    int chopstick[argv[1] - 1];
+    ftruncate(fd, seats*sizeof(sem_t));
+
+    sem_t forks = (sem_t)mmap(NULL, seats*sizeof(sem_t), PROT_EXEC | PROT_WRITE, MAP_SHARED, fd, 0);
+
+    if(forks == MAP_FAILED)
+    {
+        fprintf(stderr, "Map failed");
+        return 1;
+    }
+
+    int forks[argv[1] - 1];
+    
+    sscanf(argv[1], "%d", seats);
+    sscanf(argv[2], "%d", philNum);
+    
     signal(SIGTERM, sighandler);
 
-    if(sem_open(SEM_CHOPSTICK, O_CREAT|O_EXCL, 0666, 1) == SEM_FAILED)
+    sem_t forks[seats-1];
+    sem_t* semaphoreThing = sem_open(SEM_CHOPSTICKS, O_CREAT|O_EXCL, 0666, 1);
+
+
+    if(semaphoreThing == SEM_FAILED)
     {
         perror(NULL);
-        
+        semaphoreThing = sem_open(SEM_CHOPSTICKS, 0);
     }
 
     int cycles = 0;
-    int loop = 1;
 
     do
     {
-        wait(chopstick[i]);
-        wait(chopstick[(i+1)%5]);
+        sem_wait();
+        sem_wait(]);
 
+        //use eat
         eat(i);
 
-        signal(chopstick[i]);
-        signal(chopstick[(i+1)%5]);
+        sem_post();
+        sem_post();
 
+        //use think
         think(i);
 
         cycles++;
+
     }while(loop);
 
-    fprintf(stderr, "Philosopher %d completed %d cycles.", chopstick[i], cycles);
-    sem_close()
+    
+    sem_close();
     
     return 1;
 }
