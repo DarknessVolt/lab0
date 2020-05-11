@@ -24,31 +24,31 @@ void sighandler(int sig)
 {
     loop = 0;
 
-    fprintf(stderr, "Philosopher %d completed %d cycles.", chopstick[i], cycles);
+    fprintf(stderr, "Philosopher %d completed %d cycles.", philNum, cycles);
 }
 
 
 int rand_time()
 {
-    srand(time(NULL));
+    srand(time(NULL) + philNum);
     int rand_val = rand() % RAND_UPPER + 1;
     return rand_val;
 }
 
-int eat(phil_num)
+int eat()
 {
-    printf("Philosopher %d is eating.", phil_num);
+    printf("Philosopher %d is eating.", philNum);
 
     //consume random amount of time
-    usleep(rand_time(phil_num));
+    usleep(rand_time());
 }
 
-int think(int phil_num)
+int think()
 {
-    printf("Philosopher %d is thinking.", phil_num);
+    printf("Philosopher %d is thinking.", philNum);
     
     //consume random amount of time
-    usleep(rand_time(phil_num));
+    usleep(rand_time());
 }
 
 int main(int argc, char** argv)
@@ -65,22 +65,22 @@ int main(int argc, char** argv)
     if(fd == EEXIST)
     {
         PERROR(NULL);
-        fd = shm_open(SEM_CHOPSTICKS);
+        fd = shm_open(SEM_CHOPSTICKS, O_RDWR, 0664);
     }
 
     ftruncate(fd, seats*sizeof(sem_t));
 
-    sem_t forks = (sem_t)mmap(NULL, numOfForks*sizeof(sem_t), PROT_EXEC | PROT_WRITE, MAP_SHARED, fd, 0);
+    sem_t* forks = (sem_t*)mmap(NULL, numOfForks*sizeof(sem_t), PROT_EXEC | PROT_WRITE, MAP_SHARED, fd, 0);
 
-    if(forks == MAP_FAILED)
+    /*if(forks == MAP_FAILED)
     {
         fprintf(stderr, "Map failed");
         return 1;
-    }
+    }*/
 
     for(i = 0; i < numOfForks; i++)
     {
-        sem_init(forks[i], 0666, 0);
+        sem_init(&forks[i], 0666, 0);
     }
     
     
@@ -93,14 +93,14 @@ int main(int argc, char** argv)
 
     do
     {
-        sem_wait(forks[philNum]);
-        sem_wait(fork[(philNum+1) % numOfForks]);
+        sem_wait(&forks[philNum]);
+        sem_wait(&forks[(philNum+1) % numOfForks]);
 
         //use eat
         eat(i);
 
-        sem_post(forks[philNum]);
-        sem_post(fork[(philNum+1) % numOfForks]);
+        sem_post(&forks[philNum]);
+        sem_post(&forks[(philNum+1) % numOfForks]);
 
         //use think
         think(i);
@@ -110,11 +110,11 @@ int main(int argc, char** argv)
     }while(loop);
 
     
-    sem_close();
+    
     
     for(i = 0; i < numOfForks; i++)
     {
-        sem_destroy(fork[i]);
+        sem_destroy(&forks[i]);
     }
     return 1;
 }
