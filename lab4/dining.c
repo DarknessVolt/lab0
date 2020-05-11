@@ -18,6 +18,7 @@ int loop = 1;
 
 int seats;
 int philNum;
+int numOfForks;
 
 void sighandler(int sig)
 {
@@ -52,8 +53,15 @@ int think(int phil_num)
 
 int main(int argc, char** argv)
 {
+    int i;
+
+    //process args
+    sscanf(argv[1], "%d", seats);
+    sscanf(argv[2], "%d", philNum);
+    numOfForks = seats-1;
+
     //initialize shared memory
-    int fd = shm_open(SEM_CHOPSTICKS, O_RDWR | O_CREAT | O_EXCL, 0666);
+    int fd = shm_open(SEM_CHOPSTICKS, O_RDWR | O_CREAT | O_EXCL, 0664);
     if(fd == EEXIST)
     {
         PERROR(NULL);
@@ -62,7 +70,7 @@ int main(int argc, char** argv)
 
     ftruncate(fd, seats*sizeof(sem_t));
 
-    sem_t forks = (sem_t)mmap(NULL, seats*sizeof(sem_t), PROT_EXEC | PROT_WRITE, MAP_SHARED, fd, 0);
+    sem_t forks = (sem_t)mmap(NULL, numOfForks*sizeof(sem_t), PROT_EXEC | PROT_WRITE, MAP_SHARED, fd, 0);
 
     if(forks == MAP_FAILED)
     {
@@ -70,35 +78,29 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    int forks[argv[1] - 1];
+    for(i = 0; i < numOfForks; i++)
+    {
+        sem_init(forks[i], 0666, 0);
+    }
     
-    sscanf(argv[1], "%d", seats);
-    sscanf(argv[2], "%d", philNum);
+    
     
     signal(SIGTERM, sighandler);
 
-    sem_t forks[seats-1];
-    sem_t* semaphoreThing = sem_open(SEM_CHOPSTICKS, O_CREAT|O_EXCL, 0666, 1);
-
-
-    if(semaphoreThing == SEM_FAILED)
-    {
-        perror(NULL);
-        semaphoreThing = sem_open(SEM_CHOPSTICKS, 0);
-    }
+    
 
     int cycles = 0;
 
     do
     {
-        sem_wait();
-        sem_wait(]);
+        sem_wait(forks[philNum]);
+        sem_wait(fork[(philNum+1) % numOfForks]);
 
         //use eat
         eat(i);
 
-        sem_post();
-        sem_post();
+        sem_post(forks[philNum]);
+        sem_post(fork[(philNum+1) % numOfForks]);
 
         //use think
         think(i);
@@ -110,5 +112,9 @@ int main(int argc, char** argv)
     
     sem_close();
     
+    for(i = 0; i < numOfForks; i++)
+    {
+        sem_destroy(fork[i]);
+    }
     return 1;
 }
