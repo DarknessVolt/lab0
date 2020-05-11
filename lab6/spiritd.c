@@ -8,6 +8,8 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
+int running = 1;
+
 pid_t child1 = 0;
 pid_t child2 = 0;
 char* pathToMole;
@@ -16,9 +18,15 @@ void createChild();
 
 void sigHandler(int sig)
 {
+    //printf("Signal %d", sig);
     if(sig == SIGTERM)
     {
-        kill(0, sig);
+        //kill(0, sig);
+        if(child1 != 0)
+            kill(child1, sig);
+        if(child2 != 0)
+            kill(child2, sig);
+        running = 0;
     }
     else if(sig == 10)//sigusr1
     {
@@ -54,19 +62,10 @@ int childrng(int* childnum)
 {
     //randomly determine the child process number
 
-    if(child1 == 0 && child2 == 0)
-    {
-        srand(time(NULL));
-        *childnum = rand() % 2 + 1;
-    }
-    else if(child1 == 0)
-    {
-        *childnum = 1;
-    }
-    else
-    {
-        *childnum = 2;
-    }
+
+    srand(time(NULL));
+    *childnum = rand() % 2 + 1;
+    
 }
 
 int moleForkandExec(int childnum, pid_t* pid)
@@ -75,24 +74,28 @@ int moleForkandExec(int childnum, pid_t* pid)
 
     *pid = fork();
 
-    if(pid == 0)
+    if(*pid == 0)
     {
-        char** argv;
+        char* argv[2];
         //child process
         if(childnum == 1)
         {
-            char* argv = {"mole1"};
+            argv[0] = "mole1";
+            argv[1] = (char*)0;
         }
         else
         {
-            char* argv = {"mole2"};
+            argv[0] = "mole2";
+            argv[1] = (char*)0;
         }
         
-
         //exec the program mole, argv[0] == to mole1 or mole2
-        execve(pathToMole, argv, NULL);
+        
+        //printf("%s\n", pathToMole);
+        execv(pathToMole, argv);
+        //printf("exec failed\n");
     }
-    else if(pid < 0)
+    else if(*pid < 0)
     {
         //forking error
         return -1;
@@ -100,9 +103,11 @@ int moleForkandExec(int childnum, pid_t* pid)
     else
     {
         //parent process
+        //printf("we are here2\n");
         return 0;
     }
     //exec failed
+    //printf("we are here3\n");
     return -2;
 }
 
@@ -127,11 +132,13 @@ void createChild()
 
 void daemonFun()
 {
+    
     //RELEASE THE D(A)EMON
-    while(1)
+    do
     {
         pause();
     }
+    while(running);
 }
 
 
@@ -141,9 +148,10 @@ int main(int argc, char** argv)
     pathToMole = malloc(500*sizeof(char));
     getcwd(pathToMole, 500);
     strcat(pathToMole, "/moles");
-    //printf("yeet\n");
+    //printf("%s\n",pathToMole);
+    
     //set creation mask to 0
-    umask(0);
+    //umask(0);
 
     //fork and have parent exit
     pid_t pid = fork();
@@ -162,13 +170,16 @@ int main(int argc, char** argv)
         char* newDir = "/";
 
         //create a new session //create a new process group
-        sessionID = setsid();
+        //sessionID = setsid();
 
         //change directory to "/"
-        chdir(newDir);
+        //chdir(newDir);
+        
+        //printf("%s\n", getenv("HOME"));
+
         //close all unneeded file descriptors
         getrlimit(RLIMIT_NOFILE, &rl);
-
+        
         for(i = 0; i < rl.rlim_max; i++)
         {
             close(i);
@@ -187,7 +198,7 @@ int main(int argc, char** argv)
         daemonFun();
 
     }
-    else if(pid == 0)
+    else if(pid < 0)
     {
         //fork error
         printf("FETUS WAS YEETUS");

@@ -1,12 +1,14 @@
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <string.h>
 
 int main(int argc, char** argv)
 {
     FILE* logfile;
     char* home = getenv("HOME");
-
+    
+    //printf("%s\n", home);
+    
     chdir(home);
     
     logfile = fopen("lab6.log", "a");
@@ -15,7 +17,7 @@ int main(int argc, char** argv)
 
     fclose(logfile);
     
-    pause();
+    //pause();
 
     return 0;
 }
