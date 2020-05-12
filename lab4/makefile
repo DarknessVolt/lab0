@@ -7,7 +7,7 @@
 
 # EXECUTABLES is a Make Variable (similar to an environment variable) that lists all the
 # "executables" associated with the lab. 
-EXECUTABLES= dining-p
+EXECUTABLES= dining-p launch-philosophers
 SRC=%.c
 OBJ=%.o
 
@@ -27,8 +27,11 @@ dining-p:
 	$(CC) $(CFLAGS) -c dining.c
 	$(CC) $(CFLAGS) -lpthread -lrt -o $@ dining.o
 
+launch-philosophers:
+	$(CC) $(CFLAGS) -c dininglaunch.c
+	$(CC) $(CFLAGS) -lpthread -lrt -o $@ dininglaunch.o
 # By convention, I always have a target called
 # "clean" that I used to define all temporary
 # or intermediates.
 clean:
-	rm -f $(EXECUTABLES) dining.o
+	rm -f $(EXECUTABLES) dining.o dininglaunch.o
