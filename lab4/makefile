@@ -24,8 +24,8 @@ all: $(EXECUTABLES)
 # On the following lines (which _must_ start with a tab), are the commands I need to type -- 
 # each time my source file is modified.
 dining-p:
-	$(CC) $(CFLAGS) -lplthreads -c dining.c
-	$(CC) $(CFLAGS) -lpthreads -o $@ dining.o
+	$(CC) $(CFLAGS) -c dining.c
+	$(CC) $(CFLAGS) -lpthread -lrt -o $@ dining.o
 
 # By convention, I always have a target called
 # "clean" that I used to define all temporary
