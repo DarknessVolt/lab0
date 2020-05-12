@@ -151,7 +151,7 @@ int main(int argc, char** argv)
     //printf("%s\n",pathToMole);
     
     //set creation mask to 0
-    //umask(0);
+    umask(0);
 
     //fork and have parent exit
     pid_t pid = fork();
@@ -170,10 +170,10 @@ int main(int argc, char** argv)
         char* newDir = "/";
 
         //create a new session //create a new process group
-        //sessionID = setsid();
+        sessionID = setsid();
 
         //change directory to "/"
-        //chdir(newDir);
+        chdir(newDir);
         
         //printf("%s\n", getenv("HOME"));
 
