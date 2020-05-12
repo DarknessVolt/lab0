@@ -6,7 +6,9 @@
 
 int generate_rand_int()
 {
-    return rand()%RANGE;
+    int randPositive = rand()%RANGE;
+    int randNegative = -1 * rand()%RANGE;
+    return randPositive + randNegative;
 }
 
 int main(int argc, char** argv)
@@ -21,7 +23,7 @@ int main(int argc, char** argv)
 
         for(i = 0; i < size; i++)
         {
-            printf("%03d ", generate_rand_int());
+            printf("%4d ", generate_rand_int());
         }
         printf("\n");
     }
