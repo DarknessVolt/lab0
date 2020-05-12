@@ -25,7 +25,7 @@ void sighandler(int sig)
 {
     loop = 0;
 
-    fprintf(stderr, "Philosopher %d completed %d cycles.", philNum, cycles);
+    fprintf(stderr, "Philosopher %d completed %d cycles.\n", philNum, cycles);
 }
 
 
@@ -99,28 +99,24 @@ int main(int argc, char** argv)
     
     cycles = 0;
 
-    do
+    while(loop)
     {
         //printf("Loop %d, %d", );
-        if(loop)
-        {
-            sem_wait(&chopsticks[philNum]);
-            sem_wait(&chopsticks[(philNum+1) % numOfChopsticks]);
-        }
+        
+        sem_wait(&chopsticks[philNum]);
+        sem_wait(&chopsticks[(philNum+1) % numOfChopsticks]);
+        
         //use eat
         eat(i);
 
-        if(loop)
-        {
-            sem_post(&chopsticks[philNum]);
-            sem_post(&chopsticks[(philNum+1) % numOfChopsticks]);
-        }
+        sem_post(&chopsticks[philNum]);
+        sem_post(&chopsticks[(philNum+1) % numOfChopsticks]);
         //use think
         think(i);
 
         cycles++;
 
-    }while(loop);
+    }
     
     
     for(i = 0; i < seats; i++)
