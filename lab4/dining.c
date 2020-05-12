@@ -38,7 +38,7 @@ int rand_time()
 
 int eat()
 {
-    printf("Philosopher %d is eating.", philNum);
+    printf("Philosopher %d is eating.\n", philNum);
 
     //consume random amount of time
     usleep(rand_time());
@@ -46,7 +46,7 @@ int eat()
 
 int think()
 {
-    printf("Philosopher %d is thinking.", philNum);
+    printf("Philosopher %d is thinking.\n", philNum);
     
     //consume random amount of time
     usleep(rand_time());
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
     signal(SIGTERM, sighandler);
 
     
-    int cycles = 0;
+    cycles = 0;
 
     do
     {
