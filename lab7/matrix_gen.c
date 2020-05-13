@@ -23,9 +23,8 @@ int main(int argc, char** argv)
 
         for(i = 0; i < size; i++)
         {
-            printf("%4d ", generate_rand_int());
+            printf("[%010d,%010d]:%4d ", j, i, generate_rand_int());
         }
-        printf("\n");
     }
     return 0;
 }
