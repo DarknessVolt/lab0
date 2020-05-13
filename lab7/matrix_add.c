@@ -5,6 +5,8 @@
 #include <string.h>
 
 #define RANGE 101
+#define WORD_SIZE 29
+#define VALUE_OFFSET 24
 
 int generate_rand_int(int* scalar)
 {
@@ -20,9 +22,20 @@ void matrix_add(char* block, int size)
 
     generate_rand_int(&scalar);
 
-    for(i = 0; i < size * size; i++)
+    for(i = 0; i < size * size * WORD_SIZE; i += WORD_SIZE)
     {
-            block[i] += scalar;
+        //prepare integer
+        int valueatpos = 0;
+        char stringInt[5];
+        memcpy(&stringInt, &block[i + VALUE_OFFSET], 4);
+        sscanf(stringInt, "%d", &valueatpos);
+        printf("%s\n", stringInt);
+        //add scalar
+        valueatpos += scalar;
+
+        //save in block
+        sprintf(stringInt, "%4d ", valueatpos);
+        memcpy(&block[i + VALUE_OFFSET], &stringInt, 4);
     }
 }
 
@@ -67,19 +80,19 @@ int main(int argc, char** argv)
     char* currBlock;
     char* nextBlock;
 
-    prevBlock = malloc(block_size * block_size * sizeof(int*));
+    prevBlock = malloc(WORD_SIZE * block_size * block_size * sizeof(char*));
 	/*for(i = 0; i < block_size; i++)
     {
 		prevBlock[i] = malloc(block_size * sizeof(int));
     }*/
 
-    currBlock = malloc(block_size * block_size * sizeof(int*));
+    currBlock = malloc(WORD_SIZE * block_size * block_size * sizeof(char));
 	/*for(i = 0; i < block_size; i++)
     {
 		currBlock[i] = malloc(block_size * sizeof(int));
     }*/
 
-    nextBlock = malloc(block_size * block_size * sizeof(int*));
+    nextBlock = malloc(WORD_SIZE * block_size * block_size * sizeof(char));
 	/*for(i = 0; i < block_size; i++)
     {
 		nextBlock[i] = malloc(block_size * sizeof(int));
@@ -88,22 +101,28 @@ int main(int argc, char** argv)
     struct aiocb* aiocb_read;
     struct aiocb* aiocb_write;
 
-    memset(aiocb_read, 0, sizeof(struct aiocb));
-    memset(aiocb_write, 0, sizeof(struct aiocb));
+    aiocb_read = calloc(1, sizeof(struct aiocb));
+    aiocb_write = calloc(1, sizeof(struct aiocb));
 
     aiocb_write->aio_fildes = 0;
     aiocb_write->aio_offset = 0;
     aiocb_write->aio_buf = prevBlock;
-    aiocb_write->aio_nbytes = block_size * block_size;
+    aiocb_write->aio_nbytes = WORD_SIZE * block_size * block_size;
     aiocb_write->aio_reqprio = 0;
     
-    aiocb_write->aio_fildes = 1;
-    aiocb_write->aio_offset = 0;
-    aiocb_write->aio_buf = prevBlock;
-    aiocb_write->aio_nbytes = block_size * block_size;
-    aiocb_write->aio_reqprio = 0;
+    aiocb_read->aio_fildes = 1;
+    aiocb_read->aio_offset = 0;
+    aiocb_read->aio_buf = currBlock;
+    aiocb_read->aio_nbytes = WORD_SIZE * block_size * block_size;
+    aiocb_read->aio_reqprio = 0;
     //get start time
     time(&st_time);
+
+    //prime pump
+    aio_read(aiocb_read);
+    aio_return(aiocb_read);
+    
+    aiocb_read->aio_buf = nextBlock;
 
     for(i = 0; i < block_size * block_size - 2; i++)
     {
@@ -115,11 +134,11 @@ int main(int argc, char** argv)
         //write request and return
         aio_write(aiocb_write);
         aio_return(aiocb_write);
-        memcpy(&prevBlock[i], &currBlock[i], block_size);
+        memcpy(&prevBlock, &currBlock, block_size);
 
         //read return
         aio_return(aiocb_read);
-        memcpy(&currBlock[i], &nextBlock[i], block_size);
+        memcpy(&currBlock, &nextBlock, block_size);
     }
 
     //get end time
