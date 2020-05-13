@@ -29,16 +29,20 @@ void matrix_add(char* block, int size, int scalar)
         memcpy(stringInt, &block[i + VALUE_OFFSET], 4);
         stringInt[4] = '\0';
         sscanf(stringInt, "%d", &valueatpos);
-        printf("%s\n", stringInt);
+
+        //printf("%d\n",valueatpos);
+
         //add scalar
         valueatpos += scalar;
+        //printf("%d\n",valueatpos);
 
         //save in block
         sprintf(stringInt, "%4d ", valueatpos);
-        memcpy(&block[i + VALUE_OFFSET], &stringInt, 4);
+        //printf("%d %s %d\n", valueatpos, stringInt, scalar);
+        memcpy(&block[i + VALUE_OFFSET], stringInt, 4);
     }
 }
-
+/*
 void block_read(int** block, int size, int scalar)
 {
     int i, j;
@@ -62,7 +66,7 @@ void block_write(int** block, int size, int scalar)
 
         }
     }
-}
+}*/
 int main(int argc, char** argv)
 {
     //declarations
@@ -76,6 +80,7 @@ int main(int argc, char** argv)
 
     block_size = size/blocks;
 
+    srand(time(NULL));
     generate_rand_int(&scalar);
 
     //block setup
@@ -112,13 +117,13 @@ int main(int argc, char** argv)
 
     aiocb_write->aio_fildes = 1;
     aiocb_write->aio_offset = 0;
-    aiocb_write->aio_buf = (void*)prevBlock;
+    aiocb_write->aio_buf = prevBlock;
     aiocb_write->aio_nbytes = WORD_SIZE * block_size * block_size;
     aiocb_write->aio_reqprio = 0;
     
     aiocb_read->aio_fildes = 0;
     aiocb_read->aio_offset = 0;
-    aiocb_read->aio_buf = (void*)currBlock;
+    aiocb_read->aio_buf = currBlock;
     aiocb_read->aio_nbytes = WORD_SIZE * block_size * block_size;
     aiocb_read->aio_reqprio = 0;
     
@@ -139,12 +144,14 @@ int main(int argc, char** argv)
         
         matrix_add(currBlock, block_size, scalar);
 
+        //printf("=%s=\n", currBlock);
+
         //write request and return
         aio_write(aiocb_write);
         while(aio_error(aiocb_write) == EINPROGRESS);
         aio_return(aiocb_write);
         memcpy(prevBlock, currBlock, block_size);
-
+        //printf("%s\n", prevBlock);
         //read return
         while(aio_error(aiocb_read) == EINPROGRESS);
         aio_return(aiocb_read);
