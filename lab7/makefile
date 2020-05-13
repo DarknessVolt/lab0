@@ -25,11 +25,11 @@ all: $(EXECUTABLES)
 # each time my source file is modified.
 matrix_add:
 	$(CC) $(CFLAGS) -c matrix_add.c
-	$(CC) $(CFLAGS) -o $@ matrix_add.o
+	$(CC) $(CFLAGS) -lrt -o $@ matrix_add.o
 
 matrix_gen: 
 	$(CC) $(CFLAGS) -c matrix_gen.c
-	$(CC) $(CFLAGS) -o $@ matrix_gen.o
+	$(CC) $(CFLAGS) -lrt -o $@ matrix_gen.o
 # By convention, I always have a target called
 # "clean" that I used to define all temporary
 # or intermediates.
