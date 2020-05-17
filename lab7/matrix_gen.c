@@ -24,7 +24,7 @@ int main(int argc, char** argv)
         for(i = 0; i < size; i++)
         {
             //[x,y]:value        |23  |28
-            printf("[%010d,%010d]:%4d ", j, i, generate_rand_int());
+            printf("[%010d,%010d]:%4d\n", j, i, generate_rand_int());
         }
     }
     return 0;

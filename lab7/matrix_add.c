@@ -21,7 +21,7 @@ void matrix_add(char* block, int size, int scalar)
 {
     int i;
 
-    for(i = 0; i < size * size * WORD_SIZE; i += WORD_SIZE)
+    for(i = 0; i < size * WORD_SIZE; i += WORD_SIZE)
     {
         //prepare integer
         int valueatpos = 0;
@@ -73,12 +73,12 @@ int main(int argc, char** argv)
     int size, blocks, block_size;
     int scalar;
     int i;
-    time_t st_time, en_time;
+    clock_t st_time, en_time;
 
     sscanf(argv[1], "%d", &size);
     sscanf(argv[2], "%d", &blocks);
 
-    block_size = size/blocks;
+    block_size = size*size/blocks;
 
     srand(time(NULL));
     generate_rand_int(&scalar);
@@ -88,82 +88,99 @@ int main(int argc, char** argv)
     char* currBlock;
     char* nextBlock;
 
-    prevBlock = (char*)malloc(WORD_SIZE * block_size * block_size * sizeof(char*));
+    prevBlock = (char*)calloc(WORD_SIZE * block_size, sizeof(char));
 	/*for(i = 0; i < block_size; i++)
     {
 		prevBlock[i] = malloc(block_size * sizeof(int));
     }*/
 
-    currBlock = (char*)calloc(WORD_SIZE * block_size * block_size, sizeof(char));
+    currBlock = (char*)calloc(WORD_SIZE * block_size, sizeof(char));
 	/*for(i = 0; i < block_size; i++)
     {
 		currBlock[i] = malloc(block_size * sizeof(int));
     }*/
 
-    nextBlock = (char*)calloc(WORD_SIZE * block_size * block_size, sizeof(char));
+    nextBlock = (char*)calloc(WORD_SIZE * block_size, sizeof(char));
 	/*for(i = 0; i < block_size; i++)
     {
 		nextBlock[i] = malloc(block_size * sizeof(int));
     }*/
 
     struct aiocb* aiocb_read;
+    struct aiocb* aiocb_read2;
     struct aiocb* aiocb_write;
 
     aiocb_read = (struct aiocb*)calloc(1, sizeof(struct aiocb));
+    aiocb_read2 = (struct aiocb*)calloc(1, sizeof(struct aiocb));
     aiocb_write = (struct aiocb*)calloc(1, sizeof(struct aiocb));
 
     memset(aiocb_read, 0, sizeof(struct aiocb));
+    memset(aiocb_read2, 0, sizeof(struct aiocb));
     memset(aiocb_write, 0, sizeof(struct aiocb));
 
     aiocb_write->aio_fildes = 1;
     aiocb_write->aio_offset = 0;
     aiocb_write->aio_buf = prevBlock;
-    aiocb_write->aio_nbytes = WORD_SIZE * block_size * block_size;
+    aiocb_write->aio_nbytes = WORD_SIZE * block_size;
     aiocb_write->aio_reqprio = 0;
     
     aiocb_read->aio_fildes = 0;
     aiocb_read->aio_offset = 0;
     aiocb_read->aio_buf = currBlock;
-    aiocb_read->aio_nbytes = WORD_SIZE * block_size * block_size;
+    aiocb_read->aio_nbytes = WORD_SIZE * block_size;
     aiocb_read->aio_reqprio = 0;
     
+    aiocb_read2->aio_fildes = 0;
+    aiocb_read2->aio_offset = WORD_SIZE * block_size;
+    aiocb_read2->aio_buf = nextBlock;
+    aiocb_read2->aio_nbytes = WORD_SIZE * block_size;
+    aiocb_read2->aio_reqprio = 0;
+
     //get start time
-    time(&st_time);
+    st_time = clock();
 
     //prime pump
     aio_read(aiocb_read);
     while(aio_error(aiocb_read) == EINPROGRESS);
     aio_return(aiocb_read);
     //printf("=%s=", (char*)aiocb_read->aio_buf);
-    aiocb_read->aio_buf = nextBlock;
 
-    for(i = 0; i < block_size * block_size - 2; i++)
+    
+    //aiocb_read->aio_buf = nextBlock;
+
+    for(i = 0; i <= block_size/blocks - 2; i++)
     {
         //read request
-        aio_read(aiocb_read);
+        //aio_read(aiocb_read);
         
         matrix_add(currBlock, block_size, scalar);
 
         //printf("=%s=\n", currBlock);
 
+        memcpy(prevBlock, currBlock, block_size * WORD_SIZE);
+        
+        aio_read(aiocb_read2);
         //write request and return
         aio_write(aiocb_write);
         while(aio_error(aiocb_write) == EINPROGRESS);
         aio_return(aiocb_write);
-        memcpy(prevBlock, currBlock, block_size);
+        //memcpy(prevBlock, currBlock, block_size * block_size * WORD_SIZE);
         //printf("%s\n", prevBlock);
         //read return
-        while(aio_error(aiocb_read) == EINPROGRESS);
-        aio_return(aiocb_read);
-        memcpy(currBlock, nextBlock, block_size);
+        while(aio_error(aiocb_read2) == EINPROGRESS);
+        aio_return(aiocb_read2);
+        memcpy(currBlock, nextBlock, block_size * WORD_SIZE);
     }
     //drain pump
     matrix_add(currBlock, block_size, scalar);
+    memcpy(prevBlock, currBlock, block_size * WORD_SIZE);
+    
     aio_write(aiocb_write);
+    while(aio_error(aiocb_read) == EINPROGRESS);
     aio_return(aiocb_write);
     //get end time
-    time(&en_time);
-
+    en_time = clock();
+    
     printf("Allotted time: %d\n", en_time - st_time);
 
 }

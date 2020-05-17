@@ -97,7 +97,7 @@ int main(int argc, char** argv)
 
     for(i = 0; i < seats; i++)
     {
-        sem_init(&chopsticks[i], 0666, 1);
+        sem_init(&chopsticks[i], 0666, 0);
     }
 
     //allocate signal handler

@@ -89,7 +89,7 @@ int main(int argc, char** argv)
         
         //&chopstick_address[i] = chopsticks + i;
         //printf("yeet%d %d\n", i, chopsticks[i]);
-        sem_init(&chopsticks[i], 0666, 1);
+        sem_init(&chopsticks[i], 0666, 0);
     }
     
     //printf("yeetsuccess\n");
@@ -98,7 +98,7 @@ int main(int argc, char** argv)
 
     
     cycles = 0;
-
+    int j;
     while(loop)
     {
         //printf("Loop %d, %d", );
@@ -106,6 +106,10 @@ int main(int argc, char** argv)
         sem_wait(&chopsticks[philNum]);
         sem_wait(&chopsticks[(philNum+1) % numOfChopsticks]);
         
+        for(j = 0; j < numOfChopsticks; j++)
+        {
+            printf("%d ", chopsticks[j]);
+        }
         //use eat
         if(loop)
            eat(i);
