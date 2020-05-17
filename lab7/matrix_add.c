@@ -183,4 +183,13 @@ int main(int argc, char** argv)
     
     printf("Allotted time: %d\n", en_time - st_time);
 
+    free(prevBlock);
+    free(currBlock);
+    free(nextBlock);
+
+    free(aiocb_read2);
+    free(aiocb_read);
+    free(aiocb_write);
+
+    return 0;
 }
